@@ -5,6 +5,8 @@ from tokens.keyword_token import KeywordToken
 from tokens.number_token import NumberToken
 from tokens.operator_token import OperatorToken
 from tokens.pubctuation_token import WhitespaceToken, PunctuationToken
+from tokens.string_token import StringToken
+from tokens.type_token import TypeToken
 
 
 class Lexer:
@@ -13,6 +15,8 @@ class Lexer:
     TOKEN_CLASSES = [
         WhitespaceToken,
         KeywordToken,
+        TypeToken,
+        StringToken,
         IdentifierToken,
         NumberToken,
         OperatorToken,
@@ -65,6 +69,8 @@ if __name__ == "__main__":
     code = """
     x=5+2;
     if a=b then a=a+1;
+    int b;
+    b="123";
     """
     lexer = Lexer(code)
     try:
