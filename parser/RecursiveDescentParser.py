@@ -1,4 +1,4 @@
-from grammar.grammar_parser import EOF, EPSILON
+from grammar.grammar_analyser import EOF
 from tokens.id_token import IdentifierToken
 from tokens.keyword_token import KeywordToken
 from tokens.number_token import NumberToken
@@ -43,7 +43,7 @@ class TableDrivenParser:
         if type(token).__name__ == 'NumberToken': return 'num'
         return token.value
 
-    def format_stack(self, stack):
+    def format_stack0(self, stack):
         """Helper to format stacks nicely for the console."""
         if not stack: return "Empty"
         # For the parse stack, we want to see the top on the RIGHT
@@ -53,15 +53,42 @@ class TableDrivenParser:
         else:
             return " ".join(node.type for node in stack)
 
+    def format_stack(self, stack, top_is_left=False):
+        """Helper to format stacks nicely for the console."""
+        if not stack: return "Empty"
+
+        # If top_is_left is True, we reverse the list for display
+        items = stack[::-1] if top_is_left else stack
+
+        result = []
+        for item in items:
+            if hasattr(item, 'type'):  # If it's an ASTNode
+                result.append(item.type)
+            else:
+                result.append(str(item))
+        return " ".join(result)
+
+    def get_remaining_input(self):
+        """Gets the actual code values left to parse."""
+        remaining = []
+        for token in self.tokens[self.pos:]:
+            if token is None:
+                remaining.append('$')
+            else:
+                remaining.append(str(token.value))  # Print 'x', '5', '+', etc.
+        return " ".join(remaining)
+
     def parse(self):
         print(
-            f"\n{'STEP':<5} | {'PARSE STACK (Top is Right)':<40} | {'LOOKAHEAD':<10} | {'SEMANTIC STACK':<25} | {'ACTION'}")
-        print("-" * 120)
+            f"\n{'STEP':<4} | {'PARSE STACK (Top Left)':<35} | {'REMAINING INPUT':<20} | {'SEMANTIC STACK':<20} | {'ACTION'}")
+        print("-" * 125)
 
         while self.parse_stack:
             # 1. Capture current state for display
-            p_stack_str = self.format_stack(self.parse_stack)
-            s_stack_str = self.format_stack(self.semantic_stack)
+            # We set top_is_left=True for the Parse Stack!
+            p_stack_str = self.format_stack(self.parse_stack, top_is_left=True)
+            s_stack_str = self.format_stack(self.semantic_stack, top_is_left=False)
+            remaining_str = self.get_remaining_input()
 
             current_token = self.tokens[self.pos]
             lookahead = self.get_token_type_name(current_token)
@@ -96,14 +123,14 @@ class TableDrivenParser:
                 raise SyntaxError(f"Error: Unknown symbol '{top}' on stack")
 
             # 3. Print the step
-            # Truncate strings with [...] if they get too long for the console
-            if len(p_stack_str) > 38: p_stack_str = "..." + p_stack_str[-35:]
-            if len(s_stack_str) > 23: s_stack_str = "..." + s_stack_str[-20:]
+            if len(p_stack_str) > 32: p_stack_str = p_stack_str[:29] + "..."
+            if len(remaining_str) > 18: remaining_str = remaining_str[:15] + "..."
+            if len(s_stack_str) > 18: s_stack_str = "..." + s_stack_str[-15:]
 
-            print(f"{self.step:<5} | {p_stack_str:<40} | {lookahead:<10} | {s_stack_str:<25} | {action_msg}")
+            print(f"{self.step:<4} | {p_stack_str:<35} | {remaining_str:<20} | {s_stack_str:<20} | {action_msg}")
             self.step += 1
 
-        print("-" * 120)
+        print("-" * 125)
         return self.semantic_stack.pop()
 
     def push_rule_with_actions(self, lhs, rule):
