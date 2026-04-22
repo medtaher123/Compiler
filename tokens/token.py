@@ -10,3 +10,7 @@ class Token:
     def __repr__(self):
         """Default string representation, overridden by subclasses if needed."""
         return f"'{self.value}'"
+
+    def get_type_name(self):
+        """Return the class name as the token type."""
+        return self.value

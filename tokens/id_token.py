@@ -6,3 +6,6 @@ class IdentifierToken(Token):
 
     def __repr__(self):
         return f"ID('{self.value}')"
+
+    def get_type_name(self):
+        return "<id>"

@@ -1,5 +1,6 @@
 import re
 
+from tokens.EOFToken import EOFToken
 from tokens.id_token import IdentifierToken
 from tokens.keyword_token import KeywordToken
 from tokens.number_token import NumberToken
@@ -61,7 +62,7 @@ class Lexer:
                 illegal_char = self.source_code[position]
                 raise SyntaxError(f"Illegal character '{illegal_char}' at line {self.line}")
 
-        return tokens
+        return tokens + [EOFToken(self.line)]  # Append EOF token at the end
 
 
 # --- Testing ---

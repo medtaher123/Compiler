@@ -1,30 +1,29 @@
-from grammar.grammar_analyser import EOF
+from os import terminal_size
+
+from grammar_analyser import EOF
+from nodes.AST_node import ASTNode, TerminalNode
+from nodes.actions import BuildBinOp, BuildAssign, BuildDecl, SemanticAction
 from tokens.id_token import IdentifierToken
-from tokens.keyword_token import KeywordToken
 from tokens.number_token import NumberToken
 from tokens.operator_token import OperatorToken
 from tokens.pubctuation_token import PunctuationToken
+from tokens.string_token import StringToken
+from tokens.type_token import TypeToken
 
 TOKEN_MAPPING = {
-    'id': IdentifierToken,
-    'num': NumberToken,
-    'if': KeywordToken,  # You might need to check the .value == 'if' too
+    '<id>': IdentifierToken,
+    '<num>': NumberToken,
+    '<type>': TypeToken,
+    '<string>': StringToken,
+    #'if': KeywordToken,  # You might need to check the .value == 'if' too. to be dealt with later on
     '+': OperatorToken,
     '=': OperatorToken,
     ';': PunctuationToken,
     '$': None            # Special case for End of File
 }
 
+terminal_symbols = {'<id>', '<num>', '<type>', '<str>', '+', '=', ';'}
 
-
-class ASTNode:
-    def __init__(self, type, children=None, value=None):
-        self.type = type
-        self.children = children or []
-        self.value = value
-
-    def __repr__(self):
-        return f"{self.type}({self.value if self.value else self.children})"
 
 
 class TableDrivenParser:
@@ -38,10 +37,8 @@ class TableDrivenParser:
         self.step = 1
 
     def get_token_type_name(self, token):
-        if token is None: return EOF
-        if type(token).__name__ == 'IdentifierToken': return 'id'
-        if type(token).__name__ == 'NumberToken': return 'num'
-        return token.value
+        if token is None: return '$'
+        return token.get_type_name()
 
     def format_stack0(self, stack):
         """Helper to format stacks nicely for the console."""
@@ -100,13 +97,12 @@ class TableDrivenParser:
             # 2. Determine Action
             if top == lookahead:
                 action_msg = f"Match '{top}'"
-                if top in ('id', 'num'):
-                    self.semantic_stack.append(ASTNode(top, value=current_token.value))
+                if top in terminal_symbols:
+                    self.semantic_stack.append(TerminalNode(token=current_token))
                 self.pos += 1
 
-            elif str(top).startswith('#'):
-                action_msg = f"Execute {top}"
-                self.execute_action(top)
+            elif isinstance(top, SemanticAction):
+                top.execute(self.semantic_stack)
 
             elif top in self.table:
                 rule = self.table[top].get(lookahead)
@@ -131,25 +127,36 @@ class TableDrivenParser:
             self.step += 1
 
         print("-" * 125)
-        return self.semantic_stack.pop()
+        return self.semantic_stack
 
     def push_rule_with_actions(self, lhs, rule):
-        if lhs == 'Stmt':
-            self.parse_stack.append('#BUILD_ASSIGN')
-        elif lhs == 'ExprPrime' and rule != ['epsilon']:
-            self.parse_stack.append('#BUILD_BINOP')
+        if lhs == '<declaration>':
+            self.parse_stack.append(BuildDecl())
+        elif lhs == '<assignment>':
+            self.parse_stack.append(BuildAssign())
+        elif lhs == '<expr_prime>' and rule != ['epsilon']:
+            self.parse_stack.append(BuildBinOp())
 
+        # Push the standard grammar symbols
         if rule != ['epsilon']:
             for symbol in reversed(rule):
                 self.parse_stack.append(symbol)
 
     def execute_action(self, action):
-        if action == '#BUILD_ASSIGN':
+        if action == '#BUILD_DECL':
+            var_id = self.semantic_stack.pop()  # The ID node
+            self.semantic_stack.pop()
+            var_type = self.semantic_stack.pop()  # The TYPE node
+            self.semantic_stack.append(ASTNode('Decl', children=[var_type, var_id]))
+
+        elif action == '#BUILD_ASSIGN':
             expr = self.semantic_stack.pop()
-            var_name = self.semantic_stack.pop()
-            self.semantic_stack.append(ASTNode('Assign', children=[var_name, expr]))
+            self.semantic_stack.pop()
+            var_id = self.semantic_stack.pop()
+            self.semantic_stack.append(ASTNode('Assign', children=[var_id, expr]))
 
         elif action == '#BUILD_BINOP':
             right = self.semantic_stack.pop()
+            operator = self.semantic_stack.pop()  # This should be the '+' operator node
             left = self.semantic_stack.pop()
-            self.semantic_stack.append(ASTNode('BinOp', children=[left, right], value='+'))
+            self.semantic_stack.append(ASTNode('BinOp', children=[left, right], value=operator))
