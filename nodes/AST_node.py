@@ -21,8 +21,8 @@ class BinaryOpNode(ASTNode):
         super().__init__('BinOp', [left, right], operator)
 
 class DeclarationNode(ASTNode):
-    def __init__(self, variable, value):
-        super().__init__('Decl', [type, variable])
+    def __init__(self, variable_type, variable):
+        super().__init__('Decl', [variable_type, variable])
 
 class TypeNode(ASTNode):
     def __init__(self, type_name):
