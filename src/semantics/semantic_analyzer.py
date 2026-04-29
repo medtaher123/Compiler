@@ -120,14 +120,14 @@ class SemanticAnalyzer:
                 code="E002"
             )
             return
-        
+
+        # Infer expression type
+        expr_type = self._infer_expression_type(expr_node)
+
         # Mark as used and assigned
         self.symbol_table.mark_as_used(var_name)
         self.symbol_table.mark_as_assigned(var_name)
-        
-        # Infer expression type
-        expr_type = self._infer_expression_type(expr_node)
-        
+
         # Check type compatibility
         if expr_type != VariableType.UNKNOWN and symbol.var_type != expr_type:
             self._add_error(
@@ -154,10 +154,24 @@ class SemanticAnalyzer:
                     # Look up variable type
                     var_name = token.value
                     symbol = self.symbol_table.lookup(var_name)
+                    line = getattr(node.value, 'line', 0) if hasattr(node, 'value') else 0
                     if symbol:
+                        if not symbol.is_assigned:
+                            self._add_error(
+                                line=line,
+                                column=0,
+                                message=f"Variable '{var_name}' used before assignment",
+                                code="E005"
+                            )
                         self.symbol_table.mark_as_used(var_name)
                         return symbol.var_type
                     else:
+                        self._add_error(
+                            line=line,
+                            column=0,
+                            message=f"Variable '{var_name}' used before declaration",
+                            code="E004"
+                        )
                         return VariableType.UNKNOWN
             return VariableType.UNKNOWN
         
