@@ -53,12 +53,13 @@ class SemanticAnalyzer:
         for node in ast:
             if isinstance(node, DeclarationNode):
                 self._process_declaration(node)
-        
-        # Second pass: check assignments and expressions
-        for node in ast:
             if isinstance(node, AssignNode):
                 self._process_assignment(node)
-        
+
+        # Second pass: check assignments and expressions
+        for node in ast:
+            pass
+
         # Third pass: generate warnings for unused variables
         self._generate_usage_warnings()
         
@@ -168,7 +169,7 @@ class SemanticAnalyzer:
             operator = node.value.value if hasattr(node.value, 'value') else str(node.value)
             
             # Addition is polymorphic: int+int=int, string+string=string
-            if operator == '+':
+            if operator.value == '+':
                 if left_type == right_type:
                     return left_type
                 elif left_type != VariableType.UNKNOWN and right_type != VariableType.UNKNOWN:
