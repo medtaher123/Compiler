@@ -1,4 +1,4 @@
-from nodes.AST_node import DeclarationNode, BinaryOpNode, AssignNode
+from src.parser.nodes.ast_node import DeclarationNode, BinaryOpNode, AssignNode
 
 
 class SemanticAction:

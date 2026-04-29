@@ -1,13 +1,13 @@
 import re
 
-from tokens.EOFToken import EOFToken
-from tokens.id_token import IdentifierToken
-from tokens.keyword_token import KeywordToken
-from tokens.number_token import NumberToken
-from tokens.operator_token import OperatorToken
-from tokens.pubctuation_token import WhitespaceToken, PunctuationToken
-from tokens.string_token import StringToken
-from tokens.type_token import TypeToken
+from src.lexer.tokens.EOFToken import EOFToken
+from src.lexer.tokens.id_token import IdentifierToken
+from src.lexer.tokens.keyword_token import KeywordToken
+from src.lexer.tokens.number_token import NumberToken
+from src.lexer.tokens.operator_token import OperatorToken
+from src.lexer.tokens.pubctuation_token import WhitespaceToken, PunctuationToken
+from src.lexer.tokens.string_token import StringToken
+from src.lexer.tokens.type_token import TypeToken
 
 
 class Lexer:

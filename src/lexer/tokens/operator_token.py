@@ -1,4 +1,4 @@
-from tokens.token import Token
+from src.lexer.tokens.token import Token
 
 
 class OperatorToken(Token):

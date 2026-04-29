@@ -1,14 +1,14 @@
 from os import terminal_size
 
-from grammar_analyser import EOF
-from nodes.AST_node import ASTNode, TerminalNode
-from nodes.actions import BuildBinOp, BuildAssign, BuildDecl, SemanticAction
-from tokens.id_token import IdentifierToken
-from tokens.number_token import NumberToken
-from tokens.operator_token import OperatorToken
-from tokens.pubctuation_token import PunctuationToken
-from tokens.string_token import StringToken
-from tokens.type_token import TypeToken
+from src.parser.grammar_analyser import EOF
+from src.parser.nodes.ast_node import ASTNode, TerminalNode
+from src.parser.nodes.actions import BuildBinOp, BuildAssign, BuildDecl, SemanticAction
+from src.lexer.tokens.id_token import IdentifierToken
+from src.lexer.tokens.number_token import NumberToken
+from src.lexer.tokens.operator_token import OperatorToken
+from src.lexer.tokens.pubctuation_token import PunctuationToken
+from src.lexer.tokens.string_token import StringToken
+from src.lexer.tokens.type_token import TypeToken
 
 TOKEN_MAPPING = {
     '<id>': IdentifierToken,
@@ -107,8 +107,11 @@ class TableDrivenParser:
             elif top in self.table:
                 rule = self.table[top].get(lookahead)
                 if rule is None:
-                    raise SyntaxError(f"Syntax Error: Unexpected '{lookahead}' while looking for '{top}'")
-
+                    # If we are looking for a statement and get something else
+                    if top == "<stmt>":
+                        raise SyntaxError(f"Syntax Error: Expected a declaration (int/str) or assignment, but found '{lookahead}'")
+                    # Generic helpful message
+                    raise SyntaxError(f"Syntax Error: Invalid '{lookahead}'. Was expecting tokens that form a {top}")
                 action_msg = f"Apply {top} -> {' '.join(rule)}"
                 self.push_rule_with_actions(top, rule)
 
@@ -116,7 +119,12 @@ class TableDrivenParser:
                 action_msg = "Accept! (Finished)"
                 break
             else:
-                raise SyntaxError(f"Error: Unknown symbol '{top}' on stack")
+                if top == ';':
+                    raise SyntaxError(f"Syntax Error: Missing semicolon ';' at the end of the line.")
+                elif top == '=':
+                    raise SyntaxError(f"Syntax Error: Expected '=' in assignment.")
+                else:
+                    raise SyntaxError(f"Syntax Error: Expected '{top}' but found '{lookahead}'")
 
             # 3. Print the step
             if len(p_stack_str) > 32: p_stack_str = p_stack_str[:29] + "..."
