@@ -5,10 +5,60 @@
 This document describes the implementation of a **custom programming language compiler** built in Python. The compiler supports variable declarations, arithmetic operations, and string manipulation with comprehensive semantic analysis and professional error reporting.
  
 **Project Scope:** Milestones 1-3 (Lexical Analysis, Syntax Analysis, Semantic Analysis)
+
+## 1. How to Run the App
+
+The project has two parts:
+- a Flask backend API in `compiler_api.py`
+- a browser UI in `compiler_dashboard.html`
+
+### 1.1 Install dependencies
+
+From the project root:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 1.2 Start the backend API
+
+Run the Flask server on port `5000`:
+
+```bash
+python compiler_api.py
+```
+
+You can verify that it is running with:
+
+```bash
+curl http://localhost:5000/health
+```
+
+### 1.3 Open the UI
+
+The dashboard talks to `http://localhost:5000/api`, so keep the backend running while using the UI.
+
+You can open the dashboard directly in your browser:
+
+```bash
+xdg-open index.html
+```
+
+If opening the file directly does not work in your browser, serve the folder locally instead:
+
+```bash
+python -m http.server 8000
+```
+
+Then open:
+
+```text
+http://localhost:8000
+```
  
 ---
  
-## 1. Project Overview
+## 2. Project Overview
  
 ### 1.1 Language Features
  
